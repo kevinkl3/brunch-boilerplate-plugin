@@ -1,15 +1,17 @@
-## {{NAME}}-brunch
-Adds {{DESCRIPTION}} support to
-[brunch](http://brunch.io).
+## inject-clear-cache-brunch
+
+Simple plugin that injects a javascript function to clear the require cache. This is useful when you want to reset or clear the state of the modules.
+
+This is a fork from the brunch/brunch-boilerplat-plugin.
 
 ## Usage
-Install the plugin via npm with `npm install --save {{NAME}}-brunch`.
+Install the plugin via npm with `npm install --save inject-clear-cache-brunch`.
 
 Or, do manual install:
 
-* Add `"{{NAME}}-brunch": "~x.y.z"` to `package.json` of your brunch app.
+* Add `"inject-clear-cache-brunch": "*"` to `package.json` of your brunch app.
 * If you want to use git version of plugin, use the GitHub URI
-`"{{NAME}}-brunch": "brunch/{{NAME}}-brunch"`.
+`"inject-clear-cache-brunch": "kevinkl3/inject-clear-cache-brunch"`.
 
 ## License
 
