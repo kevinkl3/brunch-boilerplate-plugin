@@ -1,60 +1,51 @@
 'use strict';
+var fs = require('fs');
 
-// Documentation for Brunch plugins:
-// https://github.com/brunch/brunch/blob/master/docs/plugins.md
-
-// Remove everything your plugin doesn't need.
-class BrunchPlugin {
-  constructor(config) {
-    // Replace 'plugin' with your plugin's name;
-    this.config = config && config.plugins && config.plugins.plugin;
-  }
-
-  // file: File => Promise[Boolean]
-  // Called before every compilation. Stops it when the error is returned.
-  // Examples: ESLint, JSHint, CSSCheck.
-  // lint(file) { return Promise.resolve(true); }
-
-  // file: File => Promise[File]
-  // Transforms a file data to different data. Could change the source map etc.
-  // Examples: JSX, CoffeeScript, Handlebars, SASS.
-  // compile(file) { return Promise.resolve(file); }
-
-  // file: File => Promise[Array: Path]
-  // Allows Brunch to calculate dependants of the file and re-compile them too.
-  // Examples: SASS '@import's, Jade 'include'-s.
-  // getDependencies(file) { return Promise.resolve(['dep.js']); }
-
-  // file: File => Promise[File]
-  // Usually called to minify or optimize the end-result.
-  // Examples: UglifyJS, CSSMin.
-  // optimize(file) { return Promise.resolve({data: minify(file.data)}); }
-
-  // files: [File] => null
-  // Executed when each compilation is finished.
-  // Examples: Hot-reload (send a websocket push).
-  // onCompile(files) {}
-
-  // Allows to stop web-servers & other long-running entities.
-  // Executed before Brunch process is closed.
-  // teardown() {}
+function ClearCachePlugin(config) {
+  this.config = config && config.plugins && config.plugins.cacheclear;
 }
 
 // Required for all Brunch plugins.
-BrunchPlugin.prototype.brunchPlugin = true;
+ClearCachePlugin.prototype.brunchPlugin = true;
 
-// Required for compilers, linters & optimizers.
-// 'javascript', 'stylesheet' or 'template'
-// BrunchPlugin.prototype.type = 'javascript';
+ClearCachePlugin.prototype.onCompile = function(params, callback){
+  
+  if(this.config && this.config.main){
+    var data = fs.readFileSync(this.config.main).toString().split("\n");
+    var injectedFunction = function(){
+      cache = {};
+      if(require._cache){
+        Object.keys(require._cache).forEach(function(k){
+          require._cache[ k ] = null;
+        });
+        delete require._cache;
+        require._cache = cache;
+      }
+    };
 
-// Required for compilers & linters.
-// It would filter-out the list of files to operate on.
-// BrunchPlugin.prototype.extension = 'js';
-// BrunchPlugin.prototype.pattern = /\.js$/;
+    var injectedCode = "\trequire.clear = " + injectedFunction.toString() + ";";
 
-// Indicates which environment a plugin should be applied to.
-// The default value is '*' for usual plugins and
-// 'production' for optimizers.
-// BrunchPlugin.prototype.defaultEnv = 'production';
+    var i = 0;
+    var line;
+    var lineNumber = -1;
+    for(;i < data.length; i++){
+      line = data[i];
+      if(line.indexOf('require.brunch') >= 0){
+        lineNumber = i + 1;
+        break;
+      }
+    }
 
-module.exports = BrunchPlugin;
+    if(lineNumber == -1)return;
+
+    data.splice(lineNumber, 0,  injectedCode );
+    var text = data.join("\n");
+
+    fs.writeFile(this.config.main, text, function (err) {
+      if (err) return console.log(err);
+    });
+  }
+
+}
+
+module.exports = ClearCachePlugin;
