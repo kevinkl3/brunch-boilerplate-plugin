@@ -23,7 +23,7 @@ ClearCachePlugin.prototype.onCompile = function(params, callback){
       }
     };
 
-    var injectedCode = "\trequire.clear = " + injectedFunction.toString() + ";";
+    var injectedCode = "\tglobals.require.clear = " + injectedFunction.toString() + ";";
 
     var i = 0;
     var line;
